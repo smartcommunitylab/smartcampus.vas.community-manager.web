@@ -153,11 +153,7 @@ public class UserManager extends SocialEngineConnector {
 	public StoreProfile create(StoreProfile storeProfile)
 			throws CommunityManagerException {
 		try {
-			if (storeProfile.getFullname() == null) {
-				storeProfile
-						.setFullname((storeProfile.getName() + " " + storeProfile
-								.getSurname()).toLowerCase());
-			}
+			storeProfile.setFullname(createFullName(storeProfile));
 			StoreProfile present = getStoreProfileByUserId(storeProfile
 					.getUserId());
 			if (present != null) {
@@ -203,11 +199,19 @@ public class UserManager extends SocialEngineConnector {
 	public boolean update(StoreProfile storeProfile)
 			throws CommunityManagerException {
 		try {
+			storeProfile.setFullname(createFullName(storeProfile));
 			storage.updateObject(storeProfile);
 			return true;
 		} catch (Exception e) {
 			throw new CommunityManagerException();
 		}
+	}
+
+	private String createFullName(StoreProfile storeProfile) {
+		if (storeProfile != null) {
+			return ((storeProfile.getName()==null?"":storeProfile.getName())+" "+(storeProfile.getSurname()==null?"":storeProfile.getSurname())).trim(); 
+		}
+		return "";
 	}
 
 	/**
@@ -474,7 +478,7 @@ public class UserManager extends SocialEngineConnector {
 				StoreProfile storeProfile = new StoreProfile();
 				storeProfile.setName(nameValue);
 				storeProfile.setSurname(surnameValue);
-				storeProfile.setFullname(nameValue + " " + surnameValue);
+				storeProfile.setFullname(createFullName(storeProfile));
 				storeProfile.setSocialId(user.getSocialId());
 				storeProfile.setUserId(user.getId());
 				storeProfile.setUser("" + user.getId());
