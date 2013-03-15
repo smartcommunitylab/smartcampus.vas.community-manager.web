@@ -3,7 +3,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>eu.trentorise.smartcampus</groupId>
 	<artifactId>smartcampus.vas.community-manager.web</artifactId>
-	<version>1.0</version>
+	<version>1.1</version>
 	<packaging>war</packaging>
 
 	<parent>
@@ -36,6 +36,16 @@
 			<groupId>eu.trentorise.smartcampus</groupId>
 			<artifactId>syncstorage.web</artifactId>
 			<version>1.0</version>
+			<exclusions>
+				<exclusion>
+					<artifactId>sweb-webapi-client</artifactId>
+					<groupId>it.unitn.disi.sweb</groupId>
+				</exclusion>
+				<exclusion>
+					<artifactId>sweb-webapi-model</artifactId>
+					<groupId>it.unitn.disi.sweb</groupId>
+				</exclusion>
+			</exclusions>
 		</dependency>
 
 		<!-- Utilities -->
@@ -65,21 +75,21 @@
 			<artifactId>
 				smartcampus.vas.community-manager.api
 			</artifactId>
-			<version>1.0</version>
+			<version>1.1</version>
 		</dependency>
-		
-		<dependency>
-            <groupId>org.owasp.esapi</groupId>
-            <artifactId>esapi</artifactId>
-            <version>2.0GA</version>
-        </dependency>
 
-        <dependency>
-            <groupId>org.owasp</groupId>
-            <artifactId>antisamy</artifactId>
-            <version>1.4</version>
-        </dependency>
-		
+		<dependency>
+			<groupId>org.owasp.esapi</groupId>
+			<artifactId>esapi</artifactId>
+			<version>2.0GA</version>
+		</dependency>
+
+		<dependency>
+			<groupId>org.owasp</groupId>
+			<artifactId>antisamy</artifactId>
+			<version>1.4</version>
+		</dependency>
+
 	</dependencies>
 
 	<build>
@@ -93,20 +103,20 @@
 				</configuration>
 			</plugin>
 		</plugins>
-        <finalName>smartcampus.vas.community-manager.web</finalName>
+		<finalName>smartcampus.vas.community-manager.web</finalName>
 	</build>
-	
+
 	<repositories>
-        <repository>
-            <id>SmartCampus</id>
-            <url>http://repository.smartcampuslab.it/content/groups/public</url>
-        </repository>
-    </repositories> 
-    <pluginRepositories>
-    	<pluginRepository>
-            <id>SmartCampus</id>
-            <url>http://repository.smartcampuslab.it/content/groups/public</url>
-    	</pluginRepository>
-    </pluginRepositories>
-	
+		<repository>
+			<id>SmartCampus</id>
+			<url>http://repository.smartcampuslab.it/content/groups/public</url>
+		</repository>
+	</repositories>
+	<pluginRepositories>
+		<pluginRepository>
+			<id>SmartCampus</id>
+			<url>http://repository.smartcampuslab.it/content/groups/public</url>
+		</pluginRepository>
+	</pluginRepositories>
+
 </project>

@@ -34,9 +34,13 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
 import eu.trentorise.smartcampus.ac.provider.model.User;
+import eu.trentorise.smartcampus.common.Concept;
 import eu.trentorise.smartcampus.common.ShareVisibility;
+import eu.trentorise.smartcampus.vas.communitymanager.managers.AlreadyExistException;
 import eu.trentorise.smartcampus.vas.communitymanager.managers.CommunityManagerException;
 import eu.trentorise.smartcampus.vas.communitymanager.managers.SharingManager;
+import eu.trentorise.smartcampus.vas.communitymanager.model.Entity;
+import eu.trentorise.smartcampus.vas.communitymanager.model.EntityType;
 import eu.trentorise.smartcampus.vas.communitymanager.model.ShareOperation;
 import eu.trentorise.smartcampus.vas.communitymanager.model.SharedContent;
 
@@ -88,7 +92,8 @@ public class SharingController extends RestController {
 				: -1;
 		return sharingManager.getShared(user.getSocialId(),
 				visibility.getUserIds(), groupId, visibility.getCommunityIds(),
-				position, size, type, visibility.getCommunityIds() == null || visibility.getCommunityIds().isEmpty());
+				position, size, type, visibility.getCommunityIds() == null
+						|| visibility.getCommunityIds().isEmpty());
 	}
 
 	@RequestMapping(method = RequestMethod.GET, value = "/content")
@@ -101,7 +106,9 @@ public class SharingController extends RestController {
 
 		User user = retrieveUser(request, response);
 
-		return sharingManager.getShared(user.getSocialId(), Collections.singletonList(user.getSocialId()), null, null, position, size, type, false);
+		return sharingManager.getShared(user.getSocialId(),
+				Collections.singletonList(user.getSocialId()), null, null,
+				position, size, type, false);
 	}
 
 	@RequestMapping(method = RequestMethod.GET, value = "/assignments/{eid}")
@@ -114,5 +121,94 @@ public class SharingController extends RestController {
 		User user = retrieveUser(request, response);
 
 		return sharingManager.getAssignments(user.getSocialId(), eid);
+	}
+
+	@RequestMapping(method = RequestMethod.POST, value = "/entitytype/{conceptId}")
+	public @ResponseBody
+	EntityType createEntityType(HttpServletRequest request,
+			HttpServletResponse response, HttpSession session,
+			@PathVariable long conceptId) throws IOException,
+			CommunityManagerException {
+
+		User user = retrieveUser(request, response);
+
+		try {
+			return sharingManager.createEntityType(conceptId);
+		} catch (AlreadyExistException e) {
+			response.sendError(HttpServletResponse.SC_BAD_REQUEST,
+					e.getMessage());
+			return null;
+		}
+	}
+
+	@RequestMapping(method = RequestMethod.GET, value = "/entitytype-by-id/{etId}")
+	public @ResponseBody
+	EntityType getEntityTypeById(HttpServletRequest request,
+			HttpServletResponse response, HttpSession session,
+			@PathVariable long etId) throws IOException,
+			CommunityManagerException {
+
+		User user = retrieveUser(request, response);
+
+		return sharingManager.getEntityType(etId);
+	}
+
+	@RequestMapping(method = RequestMethod.GET, value = "/entitytype-by-conceptid/{cId}")
+	public @ResponseBody
+	EntityType getEntityTypeByConcept(HttpServletRequest request,
+			HttpServletResponse response, HttpSession session,
+			@PathVariable long cId) throws IOException,
+			CommunityManagerException {
+
+		User user = retrieveUser(request, response);
+
+		return sharingManager.getEntityTypeByConceptId(cId);
+	}
+
+	@RequestMapping(method = RequestMethod.GET, value = "/suggestion/{prefix}/{maxResults}")
+	public @ResponseBody
+	List<Concept> getConceptSuggestions(HttpServletRequest request,
+			HttpServletResponse response, HttpSession session,
+			@PathVariable String prefix, @PathVariable int maxResults)
+			throws IOException, CommunityManagerException {
+
+		User user = retrieveUser(request, response);
+
+		return sharingManager.getConceptSuggestions(prefix, maxResults);
+	}
+
+	@RequestMapping(method = RequestMethod.POST, value = "/entity")
+	public @ResponseBody
+	Entity createEntity(HttpServletRequest request,
+			HttpServletResponse response, @RequestBody Entity entity)
+			throws CommunityManagerException {
+		User user = retrieveUser(request, response);
+		entity.setCreatorId(user.getSocialId());
+		return sharingManager.createEntity(entity);
+	}
+
+	@RequestMapping(method = RequestMethod.PUT, value = "/entity")
+	public @ResponseBody
+	boolean updateEntity(HttpServletRequest request,
+			HttpServletResponse response, @RequestBody Entity entity)
+			throws CommunityManagerException {
+		User user = retrieveUser(request, response);
+		if (!sharingManager.checkPermission(user, entity.getId())) {
+			throw new SecurityException();
+		}
+		sharingManager.updateEntity(entity);
+		return true;
+	}
+
+	@RequestMapping(method = RequestMethod.DELETE, value = "/entity/{eid}")
+	public @ResponseBody
+	boolean deleteEntity(HttpServletRequest request,
+			HttpServletResponse response, @PathVariable long eid)
+			throws CommunityManagerException {
+		User user = retrieveUser(request, response);
+		if (!sharingManager.checkPermission(user, eid)) {
+			throw new SecurityException();
+		}
+		return sharingManager.deleteEntity(eid);
 	}
 }

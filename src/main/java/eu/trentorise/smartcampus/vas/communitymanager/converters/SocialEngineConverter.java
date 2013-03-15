@@ -39,9 +39,11 @@ import eu.trentorise.smartcampus.vas.communitymanager.Constants;
 import eu.trentorise.smartcampus.vas.communitymanager.managers.CommunityManager;
 import eu.trentorise.smartcampus.vas.communitymanager.managers.CommunityManagerException;
 import eu.trentorise.smartcampus.vas.communitymanager.managers.GroupManager;
+import eu.trentorise.smartcampus.vas.communitymanager.managers.SharingManager;
 import eu.trentorise.smartcampus.vas.communitymanager.managers.TopicManager;
 import eu.trentorise.smartcampus.vas.communitymanager.managers.UserManager;
 import eu.trentorise.smartcampus.vas.communitymanager.model.Community;
+import eu.trentorise.smartcampus.vas.communitymanager.model.EntityType;
 import eu.trentorise.smartcampus.vas.communitymanager.model.Group;
 import eu.trentorise.smartcampus.vas.communitymanager.model.MinimalProfile;
 import eu.trentorise.smartcampus.vas.communitymanager.model.SharedContent;
@@ -68,6 +70,9 @@ public class SocialEngineConverter {
 
 	@Autowired
 	private TopicManager topicManager;
+
+	@Autowired
+	private SharingManager sharingManager;
 
 	public List<Group> toGroup(List<UserGroup> userGroups)
 			throws CommunityManagerException {
@@ -492,5 +497,48 @@ public class SocialEngineConverter {
 			return null;
 		}
 		return sc;
+	}
+
+	public Concept toConcept(it.unitn.disi.sweb.webapi.model.ss.Concept c) {
+		try {
+			Concept concept = new Concept();
+			concept.setId(c.getId());
+			concept.setName(c.getLabel());
+			concept.setSummary(c.getSummary());
+			concept.setDescription(c.getDescription());
+			return concept;
+		} catch (NullPointerException e) {
+			return null;
+		}
+	}
+
+	public it.unitn.disi.sweb.webapi.model.entity.EntityType fromEntityType(
+			EntityType type) {
+		try {
+			it.unitn.disi.sweb.webapi.model.entity.EntityType entityType = new it.unitn.disi.sweb.webapi.model.entity.EntityType();
+			entityType.setId(type.getId());
+			entityType.setName(type.getName());
+			entityType.setConceptGlobalId(sharingManager
+					.getConceptGlobalId(type.getConcept().getId()));
+			return entityType;
+		} catch (Exception e) {
+			return null;
+		}
+	}
+
+	public EntityType toEntityType(
+			it.unitn.disi.sweb.webapi.model.entity.EntityType type)
+			throws CommunityManagerException {
+		try {
+			EntityType entityType = new EntityType();
+			entityType.setId(type.getId());
+			entityType.setName(type.getName());
+			entityType.setConcept(sharingManager.getConceptByGlobalId(type
+					.getConceptGlobalId()));
+
+			return entityType;
+		} catch (Exception e) {
+			return null;
+		}
 	}
 }

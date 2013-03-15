@@ -17,9 +17,7 @@ package eu.trentorise.smartcampus.vas.communitymanager.managers;
 
 import it.unitn.disi.sweb.webapi.client.smartcampus.SCWebApiClient;
 
-import java.io.IOException;
 import java.util.Locale;
-import java.util.Properties;
 
 import javax.annotation.PostConstruct;
 

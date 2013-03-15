@@ -16,6 +16,8 @@
 package eu.trentorise.smartcampus.vas.communitymanager.managers;
 
 import it.unitn.disi.sweb.webapi.client.WebApiException;
+import it.unitn.disi.sweb.webapi.model.entity.AttributeDef;
+import it.unitn.disi.sweb.webapi.model.entity.DataType;
 import it.unitn.disi.sweb.webapi.model.entity.Entity;
 import it.unitn.disi.sweb.webapi.model.entity.Filter;
 import it.unitn.disi.sweb.webapi.model.smartcampus.ac.Operation;
@@ -38,10 +40,13 @@ import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import eu.trentorise.smartcampus.ac.provider.model.User;
+import eu.trentorise.smartcampus.common.Concept;
 import eu.trentorise.smartcampus.common.Constants;
 import eu.trentorise.smartcampus.common.SemanticHelper;
 import eu.trentorise.smartcampus.common.ShareVisibility;
 import eu.trentorise.smartcampus.vas.communitymanager.converters.SocialEngineConverter;
+import eu.trentorise.smartcampus.vas.communitymanager.model.EntityType;
 import eu.trentorise.smartcampus.vas.communitymanager.model.SharedContent;
 
 /**
@@ -294,4 +299,184 @@ public class SharingManager extends SocialEngineConnector {
 		}
 	}
 
+	public EntityType getEntityTypeByConcept(Concept concept)
+			throws CommunityManagerException {
+		long conceptGlobalId = getConceptGlobalId(concept.getId());
+		try {
+			return socialConverter.toEntityType(socialEngineClient
+					.readEntityTypeByConceptGlobalId(conceptGlobalId, "uk"));
+		} catch (WebApiException e) {
+			logger.error("Exception getting entitytype by concept global id "
+					+ conceptGlobalId, e);
+			throw new CommunityManagerException();
+		}
+	}
+
+	public EntityType getEntityTypeByConceptId(long conceptId)
+			throws CommunityManagerException {
+		long conceptGlobalId = getConceptGlobalId(conceptId);
+		try {
+			return socialConverter.toEntityType(socialEngineClient
+					.readEntityTypeByConceptGlobalId(conceptGlobalId, "uk"));
+		} catch (WebApiException e) {
+			logger.error("Exception getting entitytype by concept global id "
+					+ conceptGlobalId, e);
+			throw new CommunityManagerException();
+		}
+	}
+
+	public EntityType getEntityType(long entityTypeId)
+			throws CommunityManagerException {
+		try {
+			return socialConverter.toEntityType(socialEngineClient
+					.readEntityType(entityTypeId));
+		} catch (Exception e) {
+			logger.error("Exception getting entity type", e);
+			throw new CommunityManagerException();
+		}
+
+	}
+
+	public EntityType createEntityType(long conceptId)
+			throws CommunityManagerException, AlreadyExistException {
+		try {
+			// search if entitytype already exists
+			long conceptGlobalId = getConceptGlobalId(conceptId);
+			if (socialEngineClient.readEntityTypeByConceptGlobalId(
+					conceptGlobalId, "uk") != null) {
+				throw new AlreadyExistException("entityType binded to concept "
+						+ conceptId + " already exists");
+			}
+			it.unitn.disi.sweb.webapi.model.entity.EntityType et = new it.unitn.disi.sweb.webapi.model.entity.EntityType(
+					null, null, null, conceptGlobalId);
+			AttributeDef textTag = new AttributeDef(null, null, null, null,
+					34287L, DataType.STRING, true, null, null);
+			AttributeDef semTag = new AttributeDef(null, null, null, null,
+					98309L, DataType.SEMANTIC_STRING, true, null, null);
+			AttributeDef name = new AttributeDef(null, null, null, null, 2L,
+					DataType.STRING, true, null, null);
+			AttributeDef entityTag = new AttributeDef(null, null, null, null,
+					1L, DataType.RELATION, true, null, null);
+			AttributeDef description = new AttributeDef(null, null, null, null,
+					3L, DataType.STRING, true, null, null);
+
+			et.getAttrDefs().add(name);
+			et.getAttrDefs().add(semTag);
+			et.getAttrDefs().add(textTag);
+			et.getAttrDefs().add(entityTag);
+			et.getAttrDefs().add(description);
+
+			long id = socialEngineClient.create(et);
+			return socialConverter.toEntityType(socialEngineClient
+					.readEntityType(id));
+		} catch (WebApiException e) {
+			logger.error("Exception creating entity type", e);
+			throw new CommunityManagerException();
+		}
+
+	}
+
+	public boolean deleteEntityType(long id) throws CommunityManagerException {
+		try {
+			return socialEngineClient.deleteEntityType(id);
+		} catch (WebApiException e) {
+			logger.error("Exception deleting entity type " + id, e);
+			throw new CommunityManagerException();
+		}
+	}
+
+	public Concept getConceptById(long id) throws CommunityManagerException {
+		try {
+			return socialConverter
+					.toConcept(socialEngineClient.readConcept(id));
+		} catch (WebApiException e) {
+			logger.error("Exception getting concept", e);
+			throw new CommunityManagerException();
+		}
+	}
+
+	public Concept getConceptByGlobalId(long id)
+			throws CommunityManagerException {
+		try {
+			return socialConverter.toConcept(socialEngineClient
+					.readConceptByGlobalId(id, "uk"));
+		} catch (WebApiException e) {
+			logger.error("Exception getting concept", e);
+			throw new CommunityManagerException();
+		}
+	}
+
+	public long getConceptGlobalId(long conceptId)
+			throws CommunityManagerException {
+		try {
+			return socialEngineClient.readConcept(conceptId).getGlobalId();
+		} catch (WebApiException e) {
+			logger.error("Exception getting concept gloabal id", e);
+			throw new CommunityManagerException();
+		}
+	}
+
+	public List<Concept> getConceptSuggestions(String prefix, int maxResults)
+			throws CommunityManagerException {
+		try {
+			return SemanticHelper.getSuggestions(socialEngineClient, prefix,
+					maxResults);
+		} catch (WebApiException e) {
+			logger.error("Exception getting concept suggestions", e);
+			throw new CommunityManagerException();
+		}
+	}
+
+	public eu.trentorise.smartcampus.vas.communitymanager.model.Entity createEntity(
+			eu.trentorise.smartcampus.vas.communitymanager.model.Entity entity)
+			throws CommunityManagerException {
+		try {
+			long id = SemanticHelper.createEntity(socialEngineClient,
+					entity.getCreatorId(), entity.getType(), entity.getName(),
+					entity.getDescription(), entity.getTags(),
+					entity.getRelations()).getId();
+			entity.setId(id);
+			return entity;
+		} catch (WebApiException e) {
+			logger.error("Exception creating entity", e);
+			throw new CommunityManagerException();
+		}
+	}
+
+	public void updateEntity(
+			eu.trentorise.smartcampus.vas.communitymanager.model.Entity entity)
+			throws CommunityManagerException {
+		try {
+			SemanticHelper.updateEntity(socialEngineClient, entity.getId(),
+					entity.getName(), entity.getDescription(),
+					entity.getTags(), entity.getRelations()).getId();
+		} catch (WebApiException e) {
+			logger.error("Exception creating entity", e);
+			throw new CommunityManagerException();
+		}
+	}
+
+	public boolean deleteEntity(long entityId) throws CommunityManagerException {
+		try {
+			return SemanticHelper.deleteEntity(socialEngineClient, entityId);
+		} catch (WebApiException e) {
+			logger.error("Exception deleting entity " + entityId, e);
+			throw new CommunityManagerException();
+		}
+	}
+
+	public boolean checkPermission(User user, long entityId)
+			throws CommunityManagerException {
+		Filter f = new Filter(null, new HashSet<String>(Arrays.asList("name")),
+				false, false, 0, null, null, null, null);
+		try {
+			Entity e = socialEngineClient.readEntity(entityId, f);
+			long ownerId = socialEngineClient.readActorByEntityBase(
+					e.getEntityBase().getId()).getId();
+			return user.getSocialId() == ownerId;
+		} catch (WebApiException e1) {
+			logger.error("Exception reading entity " + entityId, e1);
+			throw new CommunityManagerException();
+		}
+	}
 }

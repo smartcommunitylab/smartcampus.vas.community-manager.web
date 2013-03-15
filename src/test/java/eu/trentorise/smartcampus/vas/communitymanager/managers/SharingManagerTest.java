@@ -32,9 +32,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
+import eu.trentorise.smartcampus.common.Concept;
 import eu.trentorise.smartcampus.common.Constants;
 import eu.trentorise.smartcampus.common.ShareVisibility;
 import eu.trentorise.smartcampus.vas.communitymanager.model.Community;
+import eu.trentorise.smartcampus.vas.communitymanager.model.EntityType;
 
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration("/spring/applicationContext.xml")
@@ -48,6 +50,8 @@ public class SharingManagerTest {
 	private CommunityManager communityManager;
 	@Autowired
 	private SocialEngineOperation socialOperation;
+
+	private static final long CREATOR_ID = -1l;
 
 	/**
 	 * Profiling get shared object by Smartcampus community
@@ -105,6 +109,55 @@ public class SharingManagerTest {
 		socialOperation.deleteUser(user1.getId());
 		socialOperation.deleteUser(user2.getId());
 
+	}
+
+	/**
+	 * Failure test. If a entityType binded to a concept already exists, method
+	 * threw exception
+	 * 
+	 * @throws CommunityManagerException
+	 * @throws AlreadyExistException
+	 */
+	@Test(expected = CommunityManagerException.class)
+	public void entityTypeAlreadyExists() throws CommunityManagerException,
+			AlreadyExistException {
+		Concept c = sharingManager.getConceptByGlobalId(4080L);
+		Assert.assertNotNull(sharingManager.createEntityType(c.getId()));
+		sharingManager.createEntityType(c.getId());
+
+	}
+
+	/**
+	 * Entity type crud
+	 * 
+	 * @throws CommunityManagerException
+	 * @throws AlreadyExistException
+	 */
+	@Test
+	public void entityTypeCrud() throws CommunityManagerException,
+			AlreadyExistException {
+
+		Concept c = sharingManager.getConceptByGlobalId(4080L);
+		long conceptId = c.getId();
+
+		if (sharingManager.getEntityTypeByConcept(c) != null) {
+			sharingManager.deleteEntityType(sharingManager
+					.getEntityTypeByConcept(c).getId());
+		}
+
+		EntityType newType = sharingManager.createEntityType(c.getId());
+		Assert.assertNotNull(sharingManager.getEntityType(newType.getId()));
+		Assert.assertEquals(c.getName(), newType.getName());
+		Assert.assertEquals(new Long(conceptId), newType.getConcept().getId());
+		Assert.assertTrue(sharingManager.deleteEntityType(newType.getId()));
+		Assert.assertNull(sharingManager.getEntityType(newType.getId()));
+
+	}
+
+	@Test
+	public void clean() throws CommunityManagerException {
+		sharingManager.deleteEntityType(sharingManager
+				.getEntityTypeByConceptId(5081l).getId());
 	}
 
 	/**
@@ -426,4 +479,29 @@ public class SharingManagerTest {
 		socialOperation.deleteEntity(e2);
 
 	}
+
+	@Test
+	public void entityCrud() throws CommunityManagerException,
+			AlreadyExistException {
+		List<Concept> concepts = sharingManager.getConceptSuggestions(
+				"concert", 1);
+		Concept test = sharingManager.getConceptByGlobalId(4080l);
+		EntityType entityType = sharingManager.getEntityTypeByConcept(test);
+		if (entityType != null) {
+			sharingManager.deleteEntityType(entityType.getId());
+		}
+		entityType = sharingManager.createEntityType(test.getId());
+		eu.trentorise.smartcampus.vas.communitymanager.model.Entity e = new eu.trentorise.smartcampus.vas.communitymanager.model.Entity();
+		e.setCreatorId(CREATOR_ID);
+		e.setDescription("description");
+		e.setName("entitySample");
+		e.setTags(Arrays.asList(concepts.get(0)));
+		e.setType(entityType.getName());
+		Assert.assertTrue(e.getId() <= 0);
+		e = sharingManager.createEntity(e);
+		Assert.assertTrue(e.getId() > 0);
+		Assert.assertTrue(sharingManager.deleteEntity(e.getId()));
+		Assert.assertTrue(sharingManager.deleteEntityType(entityType.getId()));
+	}
+
 }
