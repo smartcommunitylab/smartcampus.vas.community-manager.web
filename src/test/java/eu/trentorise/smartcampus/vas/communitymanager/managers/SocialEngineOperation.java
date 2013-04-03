@@ -230,7 +230,18 @@ public class SocialEngineOperation {
 }
 
 enum EntityTypes {
-	event, experience, computerFile, journey, location, portfolio, narrative;
+	event(39l), experience(40l), computerFile(41l), journey(42l), location(44l), portfolio(
+			45l), narrative(46l);
+
+	private final long id;
+
+	private EntityTypes(Long id) {
+		this.id = id;
+	}
+
+	public Long value() {
+		return id;
+	}
 
 	public String toString() {
 		switch (this) {

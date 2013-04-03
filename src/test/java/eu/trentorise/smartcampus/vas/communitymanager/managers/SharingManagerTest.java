@@ -51,8 +51,6 @@ public class SharingManagerTest {
 	@Autowired
 	private SocialEngineOperation socialOperation;
 
-	private static final long CREATOR_ID = -1l;
-
 	/**
 	 * Profiling get shared object by Smartcampus community
 	 * 
@@ -118,7 +116,7 @@ public class SharingManagerTest {
 	 * @throws CommunityManagerException
 	 * @throws AlreadyExistException
 	 */
-	@Test(expected = CommunityManagerException.class)
+	@Test(expected = AlreadyExistException.class)
 	public void entityTypeAlreadyExists() throws CommunityManagerException,
 			AlreadyExistException {
 		Concept c = sharingManager.getConceptByGlobalId(4080L);
@@ -385,7 +383,7 @@ public class SharingManagerTest {
 				1,
 				sharingManager.getShared(user1.getId(),
 						Collections.singletonList(user1.getId()), -1L, null, 0,
-						10, EntityTypes.event.toString(), false).size());
+						10, EntityTypes.event.value(), false).size());
 
 		socialOperation.deleteUser(user1.getId());
 		socialOperation.deleteEntity(e1);
@@ -481,6 +479,12 @@ public class SharingManagerTest {
 	}
 
 	@Test
+	public void readEntityTypes() throws CommunityManagerException {
+		Assert.assertNotNull(sharingManager.getEntityTypeByName("event"));
+		Assert.assertNull(sharingManager.getEntityTypeByName("dummmie"));
+	}
+
+	@Test
 	public void entityCrud() throws CommunityManagerException,
 			AlreadyExistException {
 		List<Concept> concepts = sharingManager.getConceptSuggestions(
@@ -492,7 +496,7 @@ public class SharingManagerTest {
 		}
 		entityType = sharingManager.createEntityType(test.getId());
 		eu.trentorise.smartcampus.vas.communitymanager.model.Entity e = new eu.trentorise.smartcampus.vas.communitymanager.model.Entity();
-		e.setCreatorId(CREATOR_ID);
+		e.setCreatorId(eu.trentorise.smartcampus.vas.communitymanager.managers.Constants.CREATOR_ID);
 		e.setDescription("description");
 		e.setName("entitySample");
 		e.setTags(Arrays.asList(concepts.get(0)));
@@ -504,4 +508,11 @@ public class SharingManagerTest {
 		Assert.assertTrue(sharingManager.deleteEntityType(entityType.getId()));
 	}
 
+	@Test
+	public void profileEntityType() throws CommunityManagerException {
+		List<Concept> c = sharingManager.getConceptSuggestions("profile", 100);
+		for (Concept t : c) {
+			System.out.println(t.getName() + " " + t.getDescription());
+		}
+	}
 }

@@ -171,8 +171,7 @@ public class SharingManager extends SocialEngineConnector {
 	 */
 	public List<SharedContent> getShared(long ownerId, List<Long> userIds,
 			Long groupId, List<Long> communityIds, int position, int size,
-			String filterType, boolean addUser)
-			throws CommunityManagerException {
+			Long filterType, boolean addUser) throws CommunityManagerException {
 		try {
 			LiveTopic filter = new LiveTopic();
 			LiveTopicSource filterSource = new LiveTopicSource();
@@ -207,9 +206,8 @@ public class SharingManager extends SocialEngineConnector {
 			filter.setSubjects(Collections.singleton(subject));
 
 			LiveTopicContentType type = new LiveTopicContentType();
-			if (filterType != null && getTypesIds().containsKey(filterType)) {
-				type.setEntityTypeIds(Collections.singleton(getTypesIds().get(
-						filterType)));
+			if (filterType != null) {
+				type.setEntityTypeIds(Collections.singleton(filterType));
 			} else {
 				type.setEntityTypeIds(new HashSet<Long>(getTypesIds().values()));
 			}
@@ -304,11 +302,26 @@ public class SharingManager extends SocialEngineConnector {
 		long conceptGlobalId = getConceptGlobalId(concept.getId());
 		try {
 			return socialConverter.toEntityType(socialEngineClient
-					.readEntityTypeByConceptGlobalId(conceptGlobalId, "uk"));
+					.readEntityTypeByConceptGlobalId(
+							conceptGlobalId,
+							SemanticHelper.getSCCommunityEntityBase(
+									socialEngineClient).getKbLabel()));
 		} catch (WebApiException e) {
 			logger.error("Exception getting entitytype by concept global id "
 					+ conceptGlobalId, e);
 			throw new CommunityManagerException();
+		}
+	}
+
+	public EntityType getEntityTypeByName(String name)
+			throws CommunityManagerException {
+		try {
+			return socialConverter.toEntityType(socialEngineClient
+					.readEntityType(name, SemanticHelper
+							.getSCCommunityEntityBase(socialEngineClient)
+							.getKbLabel()));
+		} catch (WebApiException e) {
+			throw new CommunityManagerException(e);
 		}
 	}
 
@@ -317,7 +330,10 @@ public class SharingManager extends SocialEngineConnector {
 		long conceptGlobalId = getConceptGlobalId(conceptId);
 		try {
 			return socialConverter.toEntityType(socialEngineClient
-					.readEntityTypeByConceptGlobalId(conceptGlobalId, "uk"));
+					.readEntityTypeByConceptGlobalId(
+							conceptGlobalId,
+							SemanticHelper.getSCCommunityEntityBase(
+									socialEngineClient).getKbLabel()));
 		} catch (WebApiException e) {
 			logger.error("Exception getting entitytype by concept global id "
 					+ conceptGlobalId, e);
@@ -399,7 +415,9 @@ public class SharingManager extends SocialEngineConnector {
 			throws CommunityManagerException {
 		try {
 			return socialConverter.toConcept(socialEngineClient
-					.readConceptByGlobalId(id, "uk"));
+					.readConceptByGlobalId(id, SemanticHelper
+							.getSCCommunityEntityBase(socialEngineClient)
+							.getKbLabel()));
 		} catch (WebApiException e) {
 			logger.error("Exception getting concept", e);
 			throw new CommunityManagerException();

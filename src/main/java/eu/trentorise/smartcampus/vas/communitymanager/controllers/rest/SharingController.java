@@ -82,7 +82,7 @@ public class SharingController extends RestController {
 			HttpServletResponse response, HttpSession session,
 			@RequestBody ShareVisibility visibility,
 			@RequestParam int position, @RequestParam int size,
-			@RequestParam String type) throws IOException,
+			@RequestParam Long type) throws IOException,
 			CommunityManagerException {
 
 		User user = retrieveUser(request, response);
@@ -101,7 +101,7 @@ public class SharingController extends RestController {
 	List<SharedContent> getMyContents(HttpServletRequest request,
 			HttpServletResponse response, HttpSession session,
 			@RequestParam int position, @RequestParam int size,
-			@RequestParam String type) throws IOException,
+			@RequestParam Long type) throws IOException,
 			CommunityManagerException {
 
 		User user = retrieveUser(request, response);
@@ -163,6 +163,18 @@ public class SharingController extends RestController {
 		User user = retrieveUser(request, response);
 
 		return sharingManager.getEntityTypeByConceptId(cId);
+	}
+
+	@RequestMapping(method = RequestMethod.GET, value = "/entitytype-by-name/{name}")
+	public @ResponseBody
+	EntityType getEntityTypeByConcept(HttpServletRequest request,
+			HttpServletResponse response, HttpSession session,
+			@PathVariable String name) throws IOException,
+			CommunityManagerException {
+
+		User user = retrieveUser(request, response);
+
+		return sharingManager.getEntityTypeByName(name);
 	}
 
 	@RequestMapping(method = RequestMethod.GET, value = "/suggestion/{prefix}/{maxResults}")

@@ -483,7 +483,7 @@ public class SocialEngineConverter {
 			if (e.getCreationTime() != null) {
 				sc.setCreationDate(new Date(e.getCreationTime()));
 			}
-			sc.setEntityType(e.getEtype().getName());
+			sc.setEntityType(e.getEtype().getId());
 			sc.setTitle(e.getAttributeByName("name").getFirstValue()
 					.getString());
 			if (addActor) {
