@@ -480,8 +480,10 @@ public class SharingManagerTest {
 
 	@Test
 	public void readEntityTypes() throws CommunityManagerException {
-		Assert.assertNotNull(sharingManager.getEntityTypeByName("event"));
-		Assert.assertNull(sharingManager.getEntityTypeByName("dummmie"));
+		Assert.assertEquals(1, sharingManager
+				.getEntityTypeByName("event", null).size());
+		Assert.assertEquals(0,
+				sharingManager.getEntityTypeByName("dummmie", null).size());
 	}
 
 	@Test
@@ -505,7 +507,30 @@ public class SharingManagerTest {
 		e = sharingManager.createEntity(e);
 		Assert.assertTrue(e.getId() > 0);
 		Assert.assertTrue(sharingManager.deleteEntity(e.getId()));
+
+		e = new eu.trentorise.smartcampus.vas.communitymanager.model.Entity();
+		e.setCreatorId(eu.trentorise.smartcampus.vas.communitymanager.managers.Constants.CREATOR_ID);
+		e.setDescription("description");
+		e.setName("entitySample");
+		e.setTags(Arrays.asList(concepts.get(0)));
+		e.setTypeId(entityType.getId());
+		Assert.assertTrue(e.getId() <= 0);
+		e = sharingManager.createEntity(e);
+		Assert.assertTrue(e.getId() > 0);
+		Assert.assertTrue(sharingManager.deleteEntity(e.getId()));
+
 		Assert.assertTrue(sharingManager.deleteEntityType(entityType.getId()));
+
+	}
+
+	@Test(expected = CommunityManagerException.class)
+	public void createEntityFailure() throws CommunityManagerException {
+		eu.trentorise.smartcampus.vas.communitymanager.model.Entity e = new eu.trentorise.smartcampus.vas.communitymanager.model.Entity();
+		e.setCreatorId(eu.trentorise.smartcampus.vas.communitymanager.managers.Constants.CREATOR_ID);
+		e.setDescription("description");
+		e.setName("entitySample");
+		Assert.assertTrue(e.getId() <= 0);
+		Assert.assertNull(sharingManager.createEntity(e));
 	}
 
 	@Test

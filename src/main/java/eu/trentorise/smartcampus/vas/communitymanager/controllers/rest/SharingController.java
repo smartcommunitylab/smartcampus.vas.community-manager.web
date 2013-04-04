@@ -165,23 +165,25 @@ public class SharingController extends RestController {
 		return sharingManager.getEntityTypeByConceptId(cId);
 	}
 
-	@RequestMapping(method = RequestMethod.GET, value = "/entitytype-by-name/{name}")
+	@RequestMapping(method = RequestMethod.GET, value = "/entitytype-by-prefix/{prefix}")
 	public @ResponseBody
-	EntityType getEntityTypeByConcept(HttpServletRequest request,
+	List<EntityType> getEntityTypeBySuggestions(HttpServletRequest request,
 			HttpServletResponse response, HttpSession session,
-			@PathVariable String name) throws IOException,
-			CommunityManagerException {
+			@PathVariable String prefix,
+			@RequestParam(required = false) Integer maxResults)
+			throws IOException, CommunityManagerException {
 
 		User user = retrieveUser(request, response);
 
-		return sharingManager.getEntityTypeByName(name);
+		return sharingManager.getEntityTypeByName(prefix, maxResults);
 	}
 
-	@RequestMapping(method = RequestMethod.GET, value = "/suggestion/{prefix}/{maxResults}")
+	@RequestMapping(method = RequestMethod.GET, value = "/suggestion/{prefix}")
 	public @ResponseBody
 	List<Concept> getConceptSuggestions(HttpServletRequest request,
 			HttpServletResponse response, HttpSession session,
-			@PathVariable String prefix, @PathVariable int maxResults)
+			@PathVariable String prefix,
+			@RequestParam(required = false) Integer maxResults)
 			throws IOException, CommunityManagerException {
 
 		User user = retrieveUser(request, response);

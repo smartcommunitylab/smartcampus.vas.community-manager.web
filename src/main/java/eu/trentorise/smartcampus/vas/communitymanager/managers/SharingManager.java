@@ -62,6 +62,7 @@ public class SharingManager extends SocialEngineConnector {
 	private static final Logger logger = Logger.getLogger(SharingManager.class);
 	@Autowired
 	private SocialEngineConverter socialConverter;
+	private static final Integer DEFAULT_SUGGESSTIONS_RESULTS = 20;
 
 	/*
 	 * type in social engine
@@ -313,13 +314,25 @@ public class SharingManager extends SocialEngineConnector {
 		}
 	}
 
-	public EntityType getEntityTypeByName(String name)
-			throws CommunityManagerException {
+	public List<EntityType> getEntityTypeByName(String prefix,
+			Integer maxResults) throws CommunityManagerException {
 		try {
-			return socialConverter.toEntityType(socialEngineClient
-					.readEntityType(name, SemanticHelper
-							.getSCCommunityEntityBase(socialEngineClient)
-							.getKbLabel()));
+			List<EntityType> result = new ArrayList<EntityType>();
+			for (it.unitn.disi.sweb.webapi.model.entity.EntityType t : socialEngineClient
+					.readEntityTypes(SemanticHelper.getSCCommunityEntityBase(
+							socialEngineClient).getKbLabel())) {
+				if (t.getName().startsWith(prefix)) {
+					result.add(socialConverter.toEntityType(t));
+				}
+			}
+
+			maxResults = (maxResults != null) ? maxResults
+					: DEFAULT_SUGGESSTIONS_RESULTS;
+			if (maxResults <= result.size()) {
+				return result.subList(0, maxResults);
+			} else {
+				return result;
+			}
 		} catch (WebApiException e) {
 			throw new CommunityManagerException(e);
 		}
@@ -351,6 +364,19 @@ public class SharingManager extends SocialEngineConnector {
 			throw new CommunityManagerException();
 		}
 
+	}
+
+	public EntityType getEntityType(String name)
+			throws CommunityManagerException {
+		try {
+			return socialConverter.toEntityType(socialEngineClient
+					.readEntityType(name, SemanticHelper
+							.getSCCommunityEntityBase(socialEngineClient)
+							.getKbLabel()));
+		} catch (Exception e) {
+			logger.error("Exception getting entity type", e);
+			throw new CommunityManagerException();
+		}
 	}
 
 	public EntityType createEntityType(long conceptId)
@@ -434,9 +460,11 @@ public class SharingManager extends SocialEngineConnector {
 		}
 	}
 
-	public List<Concept> getConceptSuggestions(String prefix, int maxResults)
+	public List<Concept> getConceptSuggestions(String prefix, Integer maxResults)
 			throws CommunityManagerException {
 		try {
+			maxResults = (maxResults != null) ? maxResults
+					: DEFAULT_SUGGESSTIONS_RESULTS;
 			return SemanticHelper.getSuggestions(socialEngineClient, prefix,
 					maxResults);
 		} catch (WebApiException e) {
@@ -449,8 +477,29 @@ public class SharingManager extends SocialEngineConnector {
 			eu.trentorise.smartcampus.vas.communitymanager.model.Entity entity)
 			throws CommunityManagerException {
 		try {
+			String entityType = null;
+			if (entity.getType() == null || entity.getType().length() == 0) {
+				if (entity.getTypeId() > 0) {
+					EntityType t = getEntityType(entity.getTypeId());
+					if (t != null) {
+						entityType = t.getName();
+						entity.setType(entityType);
+					}
+				}
+			} else {
+				entityType = entity.getType();
+				EntityType t = getEntityType(entityType);
+				if (t != null) {
+					entity.setTypeId(t.getId());
+				}
+			}
+			if (entityType == null) {
+				throw new CommunityManagerException(String.format(
+						"entityType not exists name:%s id:%s",
+						entity.getType(), entity.getTypeId()));
+			}
 			long id = SemanticHelper.createEntity(socialEngineClient,
-					entity.getCreatorId(), entity.getType(), entity.getName(),
+					entity.getCreatorId(), entityType, entity.getName(),
 					entity.getDescription(), entity.getTags(),
 					entity.getRelations()).getId();
 			entity.setId(id);
