@@ -23,6 +23,7 @@ import it.unitn.disi.sweb.webapi.model.smartcampus.social.User;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 
 import javax.annotation.PostConstruct;
@@ -115,7 +116,7 @@ public class CommunityManager extends SocialEngineConnector {
 		try {
 			User user = socialEngineClient.readUser(socialUserId);
 			if (belongsTo) {
-				if (user.getKnownCommunityIds().isEmpty()) {
+				if (user.getKnownCommunityIds() == null || user.getKnownCommunityIds().isEmpty()) {
 					return new ArrayList<Community>();
 				} else {
 					return socialConverter.toCommunity(socialEngineClient
@@ -238,6 +239,9 @@ public class CommunityManager extends SocialEngineConnector {
 			throws CommunityManagerException {
 		try {
 			User user = socialEngineClient.readUser(socialId);
+			if (user.getKnownCommunityIds() == null) {
+				user.setKnownCommunityIds(new HashSet<Long>(1));
+			}
 			user.getKnownCommunityIds().add(communityId);
 			socialEngineClient.update(user);
 			return true;
@@ -261,7 +265,7 @@ public class CommunityManager extends SocialEngineConnector {
 		boolean success = false;
 		try {
 			User user = socialEngineClient.readUser(socialId);
-			if (user.getKnownCommunityIds().contains(communityId)) {
+			if (user.getKnownCommunityIds() != null &&  user.getKnownCommunityIds().contains(communityId)) {
 				if (user.getKnownCommunityIds().remove(communityId)) {
 					socialEngineClient.update(user);
 					success = true;
