@@ -172,6 +172,7 @@ public class SocialEngineConverter {
 				topic.getConcepts(), topic.getKeywords(), topic.getEntities()));
 		liveTopic.setType(createType(liveTopic.getType(),
 				topic.getContentTypes()));
+		liveTopic.setLastUpdateTimestamp(new Date());
 		return liveTopic;
 	}
 
