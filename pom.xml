@@ -3,7 +3,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>eu.trentorise.smartcampus</groupId>
 	<artifactId>smartcampus.vas.community-manager.web</artifactId>
-	<version>1.0</version>
+	<version>1.1</version>
 	<packaging>war</packaging>
 
 	<parent>
@@ -17,6 +17,28 @@
 	</properties>
 
 	<dependencies>
+		<dependency>
+	      <groupId>org.codehaus.jackson</groupId>
+	      <artifactId>jackson-mapper-lgpl</artifactId>
+	      <version>1.9.4</version>
+	      <type>jar</type>
+	      <scope>compile</scope>
+	    </dependency>
+	    <dependency>
+			<groupId>eu.trentorise.smartcampus</groupId>
+			<artifactId>aac.client</artifactId>
+			<version>1.0</version>
+			<type>jar</type>
+		</dependency>
+
+		<dependency>
+			<groupId>eu.trentorise.smartcampus</groupId>
+			<artifactId>profileservice.client</artifactId>
+			<version>2.1</version>
+			<type>jar</type>
+		</dependency>
+	
+	
 		<dependency>
 			<groupId>junit</groupId>
 			<artifactId>junit</artifactId>
@@ -35,7 +57,7 @@
 		<dependency>
 			<groupId>eu.trentorise.smartcampus</groupId>
 			<artifactId>syncstorage.web</artifactId>
-			<version>1.0</version>
+			<version>1.3</version>
 		</dependency>
 
 		<!-- Utilities -->
@@ -93,7 +115,7 @@
 				</configuration>
 			</plugin>
 		</plugins>
-        <finalName>smartcampus.vas.community-manager.web</finalName>
+        <finalName>mypeople.web</finalName>
 	</build>
 	
 	<repositories>

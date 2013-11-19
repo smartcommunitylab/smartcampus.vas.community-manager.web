@@ -38,9 +38,26 @@
 	
 	<bean id="acClient" class="eu.trentorise.smartcampus.ac.provider.filters.AcClient">
         <property name="endpointUrl" value="${ac.endpoint.url}" />
-    </bean>	
-	
-	
+    </bean>
+
+	<sec:http pattern="/pictureprofile/**" entry-point-ref="forbEntryPoint" 
+		use-expressions="true" create-session="stateless" authentication-manager-ref="OAuthAuthenticationManager">
+		<sec:custom-filter position="PRE_AUTH_FILTER" ref="OAUthAuthTokenFilter" />
+		<sec:intercept-url pattern="/pictureprofile/**" access="isFullyAuthenticated()" />
+	</sec:http>
+
+	<bean id="OAUthAuthTokenFilter" class="eu.trentorise.smartcampus.aac.conf.OAuthTokenFilter">
+		<property name="authenticationManager" ref="OAuthAuthenticationManager" />
+	</bean>
+	<bean id="OAuthPreauthAuthProvider"
+		class="eu.trentorise.smartcampus.aac.conf.OAuthAuthenticationProvider">
+		<property name="aacURL" value="${aacURL}" />
+	</bean>
+
+	<sec:authentication-manager id="OAuthAuthenticationManager">
+		<sec:authentication-provider ref="OAuthPreauthAuthProvider" />
+	</sec:authentication-manager>
+
 	<sec:http entry-point-ref="forbEntryPoint" use-expressions="true" create-session="stateless">
 		<sec:custom-filter position="PRE_AUTH_FILTER" ref="authTokenFilter" />
 		 <sec:intercept-url pattern="/**" access="isFullyAuthenticated()" />
