@@ -22,7 +22,6 @@ import org.apache.commons.beanutils.BeanUtils;
 import org.apache.log4j.Logger;
 
 import eu.trentorise.smartcampus.vas.communitymanager.model.MinimalProfile;
-import eu.trentorise.smartcampus.vas.communitymanager.model.Profile;
 import eu.trentorise.smartcampus.vas.communitymanager.model.StoreProfile;
 
 /**
@@ -66,20 +65,6 @@ public class ProfileConverter {
 		}
 
 		return minProfile;
-	}
-
-	public static Profile toProfile(StoreProfile storeProfile) throws Exception {
-		if (storeProfile == null) {
-			return null;
-		}
-		Profile profile = new Profile();
-		try {
-			BeanUtils.copyProperties(profile, storeProfile);
-		} catch (Exception e) {
-			logger.error("Exception converting objects");
-			throw e;
-		}
-		return profile;
 	}
 
 	public static void copyDifferences(StoreProfile source, StoreProfile target) {

@@ -15,22 +15,21 @@
  ******************************************************************************/
 package eu.trentorise.smartcampus.vas.communitymanager.managers;
 
-import it.unitn.disi.sweb.webapi.client.WebApiException;
-import it.unitn.disi.sweb.webapi.model.smartcampus.social.User;
-
-import java.io.BufferedInputStream;
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
 
-import junit.framework.Assert;
-
+import org.apache.commons.io.FileUtils;
+import org.junit.Assert;
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+
+import eu.trentorise.smartcampus.vas.communitymanager.model.Picture;
+import eu.trentorise.smartcampus.vas.communitymanager.model.StoreProfile;
 
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration("/spring/applicationContext.xml")
@@ -40,44 +39,43 @@ public class FileManagerTest {
 	private FileManager fileManager;
 
 	@Autowired
-	private SocialEngineOperation socialOperation;
+	private UserManager userManager;
 
-	private static final String FILE_NAME = "profile_icon.jpeg";
+	@Autowired
+	@Value("${picture.folder}")
+	private String folder;
 
-	/**
-	 * Test on upload and delete of a file in user space
-	 * 
-	 * @throws CommunityManagerException
-	 * @throws WebApiException
-	 */
-	@Test
-	public void crud() throws CommunityManagerException, WebApiException {
-		File file = null;
-		try {
-			file = File.createTempFile("sc_test_file", "");
-			file.deleteOnExit();
+	@Before
+	public void init() throws CommunityManagerException, IOException {
+		if (userManager.getStoreProfileByUserId(23l) == null) {
+			StoreProfile profile = new StoreProfile();
+			profile.setName("m");
+			profile.setSurname("p");
+			profile.setUserId(23l);
 
-			InputStream in = getClass().getResourceAsStream(FILE_NAME);
-			BufferedInputStream bin = new BufferedInputStream(in);
-			FileOutputStream fos = new FileOutputStream(file);
-			byte[] buffer = new byte[200];
-			while (bin.read(buffer, 0, buffer.length) != -1) {
-				fos.write(buffer);
-			}
-			fos.close();
-			bin.close();
-			in.close();
-		} catch (IOException e) {
-			Assert.fail("Exception creating temp file");
+			userManager.create(profile);
 		}
-		User user1 = socialOperation.createUser();
-		long fid = fileManager.upload(user1.getId(), file);
-		Assert.assertTrue(fid > 0);
 
-		Assert.assertTrue(fileManager.delete(fid));
-
-		socialOperation.deleteUser(user1.getId());
+		FileUtils.cleanDirectory(new File(folder));
 
 	}
 
+	@Test
+	public void crud() {
+
+		try {
+			Picture picture = fileManager.upload(
+					23l,
+					FileUtils.toFile(Thread.currentThread()
+							.getContextClassLoader()
+							.getResource("profile_icon.jpeg")));
+			StoreProfile profile = userManager.getStoreProfileByUserId(23l);
+			profile.setPictureUrl(picture.getId());
+			profile.setPicturePath(picture.getPath());
+			userManager.update(profile);
+			fileManager.download(Long.valueOf(picture.getId()));
+		} catch (CommunityManagerException e) {
+			Assert.fail("Exception: " + e.getMessage());
+		}
+	}
 }

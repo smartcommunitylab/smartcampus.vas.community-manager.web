@@ -15,14 +15,21 @@
  ******************************************************************************/
 package eu.trentorise.smartcampus.vas.communitymanager.managers;
 
-import it.unitn.disi.sweb.webapi.client.WebApiException;
-import it.unitn.disi.sweb.webapi.model.entity.EntityBase;
-
 import java.io.File;
+import java.io.IOException;
 
+import javax.annotation.PostConstruct;
+
+import org.apache.commons.io.FileUtils;
 import org.apache.log4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.springframework.util.FileCopyUtils;
+import org.springframework.util.StringUtils;
+
+import eu.trentorise.smartcampus.vas.communitymanager.model.MinimalProfile;
+import eu.trentorise.smartcampus.vas.communitymanager.model.Picture;
 
 /**
  * <i>FileManager</i> manages functionalities of resources uploaded into user
@@ -32,37 +39,38 @@ import org.springframework.util.FileCopyUtils;
  * 
  */
 @Component
-public class FileManager extends SocialEngineConnector {
+public class FileManager {
 
 	private static final Logger logger = Logger.getLogger(FileManager.class);
 
-	private long uploadFile(long ownerId, File file) throws WebApiException {
-		EntityBase eb = socialEngineClient.readEntityBase(socialEngineClient
-				.readUser(ownerId).getEntityBaseId());
-		return socialEngineClient.uploadFile(file, eb.getLabel());
-	}
+	@Autowired
+	@Value("${picture.folder}")
+	private String pictureFolderPath;
 
-	private void replaceFile(long socialId, File file) throws WebApiException {
-		socialEngineClient.replaceFile(socialId, file);
-	}
+	@Autowired
+	UserManager userManager;
 
-	/**
-	 * uploads resources into user space
-	 * 
-	 * @param ownerId
-	 *            social id of user space
-	 * @param file
-	 *            resource to upload
-	 * @return id of uploaded resource
-	 * @throws CommunityManagerException
-	 */
-	public long upload(long ownerId, File file)
-			throws CommunityManagerException {
-		try {
-			return uploadFile(ownerId, file);
-		} catch (Exception e) {
-			logger.error("Exception uploading file", e);
-			throw new CommunityManagerException();
+	@PostConstruct
+	@SuppressWarnings("unused")
+	private void init() {
+		if (!StringUtils.hasText(pictureFolderPath)) {
+			String msg = "Properties picture.folder unsetted";
+			logger.error(msg);
+			throw new IllegalArgumentException(msg);
+		} else {
+			if (!pictureFolderPath.endsWith("/")
+					&& !pictureFolderPath.endsWith("\\")) {
+				pictureFolderPath += "/";
+			}
+			File pictureFolder = new File(pictureFolderPath);
+			if (!pictureFolder.exists()) {
+				if (pictureFolder.mkdirs()) {
+					logger.info("Created picture folder: " + pictureFolderPath);
+				} else {
+					logger.error("Error creating picture folder: "
+							+ pictureFolderPath);
+				}
+			}
 		}
 	}
 
@@ -72,26 +80,58 @@ public class FileManager extends SocialEngineConnector {
 	 * @param ownerId
 	 *            social id of user space
 	 * @param file
-	 *            resource byte array
-	 * @return id of uploaded resource
+	 *            resource to upload
+	 * @return Picture containing file details
 	 * @throws CommunityManagerException
 	 */
-	public long updload(long ownerId, byte[] file)
+	public Picture upload(long ownerId, File file)
+			throws CommunityManagerException {
+		File picture = new File(pictureFolderPath, "" + ownerId + "."
+				+ getExtension(file));
+		if (picture.exists()) {
+			throw new CommunityManagerException(
+					"profile picture already exists");
+		} else {
+			try {
+				FileUtils.copyFile(file, picture);
+			} catch (IOException e) {
+				String msg = "Exception storing picture: "
+						+ picture.getAbsolutePath();
+				logger.error(msg);
+				throw new CommunityManagerException(msg);
+			}
+		}
+
+		return new Picture(picture.getName(), "" + ownerId);
+	}
+
+	/**
+	 * uploads resources into user space
+	 * 
+	 * @param ownerId
+	 *            social id of user space
+	 * @param file
+	 *            resource byte array
+	 * @return Picture containing file details
+	 * @throws CommunityManagerException
+	 */
+	public Picture updload(long ownerId, byte[] file)
 			throws CommunityManagerException {
 		try {
 			File temp = File.createTempFile("sc_file", null);
 			temp.deleteOnExit();
 			FileCopyUtils.copy(file, temp);
-			long fid = uploadFile(ownerId, temp);
+			Picture picture = upload(ownerId, temp);
 			try {
 				temp.delete();
 			} catch (SecurityException e) {
 				logger.warn("Exception delete temporary file", e);
 			}
-			return fid;
+			return picture;
 		} catch (Exception e) {
-			logger.error("Exception uploading file", e);
-			throw new CommunityManagerException();
+			String msg = "Exception uploading file for user " + ownerId;
+			logger.error(msg, e);
+			throw new CommunityManagerException(msg);
 		}
 	}
 
@@ -105,9 +145,8 @@ public class FileManager extends SocialEngineConnector {
 	 */
 	public byte[] download(long socialId) throws CommunityManagerException {
 		try {
-
-			return FileCopyUtils.copyToByteArray(socialEngineClient
-					.openStream(socialId));
+			File picture = getProfilePicture(socialId);
+			return FileCopyUtils.copyToByteArray(picture);
 		} catch (Exception e) {
 			logger.error("Exception downloading file", e);
 			throw new CommunityManagerException();
@@ -122,11 +161,10 @@ public class FileManager extends SocialEngineConnector {
 	 *            id of resource to delete
 	 * @return true if operation gone fine, false otherwise
 	 */
-	public boolean delete(long socialId) {
+	public boolean delete(long socialId) throws CommunityManagerException {
 		try {
-			return socialEngineClient.deleteFile(socialId);
-		} catch (WebApiException e) {
-			logger.error("Exception deleting file " + socialId, e);
+			return getProfilePicture(socialId).delete();
+		} catch (CommunityManagerException e) {
 			return false;
 		}
 	}
@@ -139,15 +177,20 @@ public class FileManager extends SocialEngineConnector {
 	 * @param file
 	 *            new content for the resource
 	 * @return true if operation gone fine, false otherwise
+	 * @throws CommunityManagerException
 	 */
-	public boolean replace(long socialId, File file) {
+	public boolean replace(long socialId, File file)
+			throws CommunityManagerException {
+
+		File picture = getProfilePicture(socialId);
 		try {
-			replaceFile(socialId, file);
-			return true;
-		} catch (WebApiException e) {
-			logger.error("Exception replacing file " + socialId, e);
-			return false;
+			FileUtils.copyFile(file, picture);
+		} catch (IOException e) {
+			String msg = "Error replacing profile picture for user " + socialId;
+			logger.error(msg);
+			throw new CommunityManagerException(msg);
 		}
+		return true;
 	}
 
 	/**
@@ -164,7 +207,7 @@ public class FileManager extends SocialEngineConnector {
 			File temp = File.createTempFile("sc_file", null);
 			temp.deleteOnExit();
 			FileCopyUtils.copy(file, temp);
-			replaceFile(socialId, temp);
+			replace(socialId, temp);
 			try {
 				temp.delete();
 			} catch (SecurityException e) {
@@ -177,4 +220,35 @@ public class FileManager extends SocialEngineConnector {
 		}
 	}
 
+	private String getExtension(File file) {
+		String name = file.getName();
+		return name.substring(name.lastIndexOf(".") + 1);
+	}
+
+	private File getProfilePicture(long userId)
+			throws CommunityManagerException {
+		MinimalProfile profile = userManager.getUserById(userId);
+		String msg = null;
+		if (profile == null) {
+			msg = "No profile for user " + userId;
+			logger.error(msg);
+			throw new CommunityManagerException(msg);
+		}
+		boolean pictureExist = StringUtils.hasText(profile.getPictureUrl());
+
+		File picture = null;
+		if (pictureExist) {
+			picture = new File(pictureFolderPath + profile.getPicturePath());
+			pictureExist = picture.exists();
+		}
+
+		if (!pictureExist) {
+			msg = "No profile picture for user " + userId;
+			logger.error(msg);
+			throw new CommunityManagerException(msg);
+
+		}
+		return picture;
+
+	}
 }

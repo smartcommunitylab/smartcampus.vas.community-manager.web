@@ -37,43 +37,44 @@ import org.springframework.web.multipart.MultipartFile;
 import eu.trentorise.smartcampus.profileservice.BasicProfileService;
 import eu.trentorise.smartcampus.profileservice.ProfileServiceException;
 import eu.trentorise.smartcampus.profileservice.model.BasicProfile;
-import eu.trentorise.smartcampus.vas.communitymanager.managers.CommonsManager;
 import eu.trentorise.smartcampus.vas.communitymanager.managers.CommunityManagerException;
 import eu.trentorise.smartcampus.vas.communitymanager.managers.FileManager;
 import eu.trentorise.smartcampus.vas.communitymanager.managers.UserManager;
 import eu.trentorise.smartcampus.vas.communitymanager.model.MinimalProfile;
+import eu.trentorise.smartcampus.vas.communitymanager.model.Picture;
 import eu.trentorise.smartcampus.vas.communitymanager.model.PictureProfile;
 import eu.trentorise.smartcampus.vas.communitymanager.model.StoreProfile;
 
 /**
  * 
  * @author raman
- *
+ * 
  */
 @Controller
-public class PictureProfileController  extends RestController {
+public class PictureProfileController {
 
 	@Autowired
 	@Value("${aacURL}")
 	private String url;
-	
+
 	@Autowired
 	private UserManager userManager;
-	@Autowired
-	CommonsManager commonsManager = null;
 
 	@Autowired
 	FileManager fileManager;
 
 	private BasicProfileService basicProfileService = null;
-	
+
 	private BasicProfileService getBasicProfileService() {
-		if (basicProfileService == null) basicProfileService = new BasicProfileService(url);
+		if (basicProfileService == null)
+			basicProfileService = new BasicProfileService(url);
 		return basicProfileService;
 	}
-	
+
 	@RequestMapping(method = RequestMethod.GET, value = "pictureprofile/current")
-	public @ResponseBody PictureProfile getProfile(HttpServletRequest request) throws SecurityException, ProfileServiceException {
+	public @ResponseBody
+	PictureProfile getProfile(HttpServletRequest request)
+			throws SecurityException, ProfileServiceException {
 		String token = getToken(request);
 		BasicProfile bp = getBasicProfileService().getBasicProfile(token);
 		PictureProfile profile = toPictureProfile(bp);
@@ -81,15 +82,20 @@ public class PictureProfileController  extends RestController {
 	}
 
 	@RequestMapping(method = RequestMethod.GET, value = "pictureprofile")
-	public @ResponseBody List<PictureProfile> getProfile(HttpServletRequest request, @RequestParam(required=false) String filter, @RequestParam(required=false) List<String> ids) throws SecurityException, ProfileServiceException {
+	public @ResponseBody
+	List<PictureProfile> getProfile(HttpServletRequest request,
+			@RequestParam(required = false) String filter,
+			@RequestParam(required = false) List<String> ids)
+			throws SecurityException, ProfileServiceException {
 		String token = getToken(request);
 		List<BasicProfile> bpList = null;
 		if (ids != null) {
-			bpList = getBasicProfileService().getBasicProfilesByUserId(ids, token);
+			bpList = getBasicProfileService().getBasicProfilesByUserId(ids,
+					token);
 		} else {
-			bpList = getBasicProfileService().getBasicProfiles(filter, token);	
+			bpList = getBasicProfileService().getBasicProfiles(filter, token);
 		}
-		
+
 		List<PictureProfile> list = new ArrayList<PictureProfile>();
 		if (bpList != null)
 			for (BasicProfile bp : bpList)
@@ -101,7 +107,8 @@ public class PictureProfileController  extends RestController {
 			throws ProfileServiceException {
 		PictureProfile profile = new PictureProfile(bp);
 		try {
-			MinimalProfile mp = userManager.getUserBySocialId(Long.parseLong(bp.getSocialId()));
+			MinimalProfile mp = userManager.getUserBySocialId(Long.parseLong(bp
+					.getSocialId()));
 			if (mp == null) {
 				StoreProfile sp = new StoreProfile();
 				sp.setUser(bp.getUserId());
@@ -118,7 +125,7 @@ public class PictureProfileController  extends RestController {
 		}
 		return profile;
 	}
-	
+
 	private String getToken(HttpServletRequest request) {
 		return (String) SecurityContextHolder.getContext().getAuthentication()
 				.getPrincipal();
@@ -126,16 +133,18 @@ public class PictureProfileController  extends RestController {
 
 	@RequestMapping(value = "/pictureprofile/file", method = RequestMethod.POST)
 	public @ResponseBody
-	PictureProfile uploadFile(HttpServletRequest request, HttpServletResponse response,
-			HttpSession session, @RequestParam("file") MultipartFile file)
-			throws IOException, CommunityManagerException, SecurityException, ProfileServiceException {
+	PictureProfile uploadFile(HttpServletRequest request,
+			HttpServletResponse response, HttpSession session,
+			@RequestParam("file") MultipartFile file) throws IOException,
+			CommunityManagerException, SecurityException,
+			ProfileServiceException {
 		String token = getToken(request);
 		BasicProfile bp = getBasicProfileService().getBasicProfile(token);
 		PictureProfile pp = toPictureProfile(bp);
 		long socialId = Long.parseLong(bp.getSocialId());
 		StoreProfile sp = userManager.getStoreProfileBySocialId(socialId);
-		long fid = fileManager.updload(socialId, file.getBytes());
-		sp.setPictureUrl(""+fid);
+		Picture picture = fileManager.updload(socialId, file.getBytes());
+		sp.setPictureUrl(picture.getId());
 		userManager.update(sp);
 		pp.setPictureUrl(sp.getPictureUrl());
 		return pp;
