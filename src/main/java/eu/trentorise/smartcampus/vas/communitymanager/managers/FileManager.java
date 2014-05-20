@@ -242,6 +242,13 @@ public class FileManager {
 			pictureExist = picture.exists();
 		}
 
+		// try to find userId.jpg, picture from sweb engine porting
+		if (!pictureExist) {
+			picture = new File(pictureFolderPath + profile.getPictureUrl()
+					+ ".jpg");
+			pictureExist = picture.exists();
+		}
+
 		if (!pictureExist) {
 			msg = "No profile picture for user " + userId;
 			logger.error(msg);
