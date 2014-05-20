@@ -41,9 +41,9 @@
 
 	<context:property-placeholder location="classpath:communitymanager.properties" />
 
-	<bean id="acClient" class="eu.trentorise.smartcampus.ac.provider.filters.AcClient">
-		<property name="endpointUrl" value="${ac.endpoint.url}" />
-	</bean>
+<!-- 	<bean id="acClient" class="eu.trentorise.smartcampus.ac.provider.filters.AcClient"> -->
+<!-- 		<property name="endpointUrl" value="${ac.endpoint.url}" /> -->
+<!-- 	</bean> -->
 
 	<mongo:mongo host="${smartcampus.vas.web.mongo.host}" port="${smartcampus.vas.web.mongo.port}" />
 
@@ -61,4 +61,9 @@
 	<!-- Enabling upload files -->
 	<bean id="multipartResolver"
 		class="org.springframework.web.multipart.commons.CommonsMultipartResolver" />
+	
+	<bean id="sociaService"
+		class="eu.trentorise.smartcampus.socialservice.SocialService">
+		<constructor-arg value="${socialservice.endpoint}"></constructor-arg>
+	</bean>
 </beans>

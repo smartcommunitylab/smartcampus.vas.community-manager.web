@@ -27,7 +27,7 @@ import eu.trentorise.smartcampus.profileservice.model.BasicProfile;
  */
 public class PictureProfile {
 	
-	private String pictureUrl, id, name, surname, socialId;
+	private String pictureUrl, userId, name, surname, socialId;
 
 	
 	
@@ -37,7 +37,7 @@ public class PictureProfile {
 
 	public PictureProfile(BasicProfile bp) {
 		super();
-		setId(bp.getUserId());
+		setUserId(bp.getUserId());
 		setSurname(bp.getSurname());
 		setSocialId(bp.getSocialId());
 		setName(bp.getName());
@@ -51,12 +51,12 @@ public class PictureProfile {
 		this.pictureUrl = pictureUrl;
 	}
 
-	public String getId() {
-		return id;
+	public String getUserId() {
+		return userId;
 	}
 
-	public void setId(String id) {
-		this.id = id;
+	public void setUserId(String id) {
+		this.userId = id;
 	}
 
 	public String getName() {

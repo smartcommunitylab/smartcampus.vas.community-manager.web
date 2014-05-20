@@ -36,9 +36,9 @@
 
 	<!-- AC SERVICE PROVIDER FILTER INTEGRATION -->
 	
-	<bean id="acClient" class="eu.trentorise.smartcampus.ac.provider.filters.AcClient">
-        <property name="endpointUrl" value="${ac.endpoint.url}" />
-    </bean>
+<!-- 	<bean id="acClient" class="eu.trentorise.smartcampus.ac.provider.filters.AcClient"> -->
+<!--         <property name="endpointUrl" value="${ac.endpoint.url}" /> -->
+<!--     </bean> -->
 
 	<sec:http pattern="/pictureprofile/**" entry-point-ref="forbEntryPoint" 
 		use-expressions="true" create-session="stateless" authentication-manager-ref="OAuthAuthenticationManager">
@@ -58,10 +58,10 @@
 		<sec:authentication-provider ref="OAuthPreauthAuthProvider" />
 	</sec:authentication-manager>
 
-	<sec:http entry-point-ref="forbEntryPoint" use-expressions="true" create-session="stateless">
-		<sec:custom-filter position="PRE_AUTH_FILTER" ref="authTokenFilter" />
-		 <sec:intercept-url pattern="/**" access="isFullyAuthenticated()" />
-	</sec:http>
+<!-- 	<sec:http entry-point-ref="forbEntryPoint" use-expressions="true" create-session="stateless"> -->
+<!-- 		<sec:custom-filter position="PRE_AUTH_FILTER" ref="authTokenFilter" /> -->
+<!-- 		 <sec:intercept-url pattern="/**" access="isFullyAuthenticated()" /> -->
+<!-- 	</sec:http> -->
 	
 	<!-- 
 		<sec:http entry-point-ref="forbEntryPoint" use-expressions="true" create-session="stateless">
@@ -80,16 +80,16 @@
 	<bean id="forbEntryPoint" class="org.springframework.security.web.authentication.Http403ForbiddenEntryPoint">
 	</bean>
 
-	<bean id="authTokenFilter" class="eu.trentorise.smartcampus.ac.provider.filters.AcProviderFilter">
-		<property name="authenticationManager" ref="authenticationManager" />
-	</bean>
+<!-- 	<bean id="authTokenFilter" class="eu.trentorise.smartcampus.ac.provider.filters.AcProviderFilter"> -->
+<!-- 		<property name="authenticationManager" ref="authenticationManager" /> -->
+<!-- 	</bean> -->
 
 	<sec:authentication-manager alias="authenticationManager">
 		<sec:authentication-provider ref="preauthAuthProvider" />
 	</sec:authentication-manager>
 
-	<bean id="preauthAuthProvider" class="eu.trentorise.smartcampus.ac.provider.filters.SpringAcProvider">
-		<constructor-arg value="${ac.endpoint.url}" />
-	</bean>
+<!-- 	<bean id="preauthAuthProvider" class="eu.trentorise.smartcampus.ac.provider.filters.SpringAcProvider"> -->
+<!-- 		<constructor-arg value="${ac.endpoint.url}" /> -->
+<!-- 	</bean> -->
 		
 </beans>

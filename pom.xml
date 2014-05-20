@@ -32,7 +32,7 @@
 		<dependency>
 			<groupId>eu.trentorise.smartcampus</groupId>
 			<artifactId>aac.client</artifactId>
-			<version>1.0</version>
+			<version>1.1</version>
 			<type>jar</type>
 		</dependency>
 
@@ -111,6 +111,20 @@
 			<groupId>eu.trentorise.smartcampus</groupId>
 			<artifactId>socialservice.client</artifactId>
 			<version>3.0</version>
+		</dependency>
+
+
+		<!-- USE FOR RETRIEVE DATA SCRIPT -->
+		<dependency>
+			<groupId>it.unitn.disi.sweb</groupId>
+			<artifactId>social-webapi-client</artifactId>
+			<version>1.2-FINAL</version>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>mysql</groupId>
+			<artifactId>mysql-connector-java</artifactId>
+			<version>5.1.30</version>
 		</dependency>
 	</dependencies>
 

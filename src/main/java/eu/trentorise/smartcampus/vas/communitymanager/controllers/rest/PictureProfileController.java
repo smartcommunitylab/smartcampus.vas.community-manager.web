@@ -107,8 +107,8 @@ public class PictureProfileController {
 			throws ProfileServiceException {
 		PictureProfile profile = new PictureProfile(bp);
 		try {
-			MinimalProfile mp = userManager.getUserBySocialId(Long.parseLong(bp
-					.getSocialId()));
+			MinimalProfile mp = userManager.getUserById(Long.parseLong(bp
+					.getUserId()));
 			if (mp == null) {
 				StoreProfile sp = new StoreProfile();
 				sp.setUser(bp.getUserId());
@@ -141,10 +141,11 @@ public class PictureProfileController {
 		String token = getToken(request);
 		BasicProfile bp = getBasicProfileService().getBasicProfile(token);
 		PictureProfile pp = toPictureProfile(bp);
-		long socialId = Long.parseLong(bp.getSocialId());
-		StoreProfile sp = userManager.getStoreProfileBySocialId(socialId);
-		Picture picture = fileManager.updload(socialId, file.getBytes());
+		long userId = Long.parseLong(bp.getUserId());
+		StoreProfile sp = userManager.getStoreProfileByUserId(userId);
+		Picture picture = fileManager.updload(userId, file.getBytes());
 		sp.setPictureUrl(picture.getId());
+		sp.setPicturePath(picture.getPath());
 		userManager.update(sp);
 		pp.setPictureUrl(sp.getPictureUrl());
 		return pp;

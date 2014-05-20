@@ -88,19 +88,19 @@ public class FileManager {
 			throws CommunityManagerException {
 		File picture = new File(pictureFolderPath, "" + ownerId + "."
 				+ getExtension(file));
-		if (picture.exists()) {
-			throw new CommunityManagerException(
-					"profile picture already exists");
-		} else {
-			try {
-				FileUtils.copyFile(file, picture);
-			} catch (IOException e) {
-				String msg = "Exception storing picture: "
-						+ picture.getAbsolutePath();
-				logger.error(msg);
-				throw new CommunityManagerException(msg);
-			}
+		// if (picture.exists()) {
+		// throw new CommunityManagerException(
+		// "profile picture already exists");
+		// } else {
+		try {
+			FileUtils.copyFile(file, picture);
+		} catch (IOException e) {
+			String msg = "Exception storing picture: "
+					+ picture.getAbsolutePath();
+			logger.error(msg);
+			throw new CommunityManagerException(msg);
 		}
+		// }
 
 		return new Picture(picture.getName(), "" + ownerId);
 	}
