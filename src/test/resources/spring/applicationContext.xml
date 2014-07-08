@@ -62,5 +62,10 @@
     <bean id="syncObjectStorage" class="eu.trentorise.smartcampus.vas.communitymanager.storage.ProfileStorage">
         <constructor-arg ref="mongoTemplate" />
     </bean>
+    
+    <bean id="sociaService"
+		class="eu.trentorise.smartcampus.socialservice.SocialService">
+		<constructor-arg value="${socialservice.endpoint}"></constructor-arg>
+	</bean>
 
 </beans>
