@@ -88,10 +88,6 @@ public class FileManager {
 			throws CommunityManagerException {
 		File picture = new File(pictureFolderPath, "" + ownerId + "."
 				+ getExtension(file));
-		// if (picture.exists()) {
-		// throw new CommunityManagerException(
-		// "profile picture already exists");
-		// } else {
 		try {
 			FileUtils.copyFile(file, picture);
 		} catch (IOException e) {
@@ -100,7 +96,6 @@ public class FileManager {
 			logger.error(msg);
 			throw new CommunityManagerException(msg);
 		}
-		// }
 
 		return new Picture(picture.getName(), "" + ownerId);
 	}
@@ -245,7 +240,7 @@ public class FileManager {
 		// try to find userId.jpg, picture from sweb engine porting
 		if (!pictureExist) {
 			picture = new File(pictureFolderPath + profile.getPictureUrl()
-					+ ".jpg");
+					+ ".png");
 			pictureExist = picture.exists();
 		}
 
