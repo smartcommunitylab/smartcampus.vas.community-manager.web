@@ -175,7 +175,7 @@
 										</manifest>
 									</archive>
 									<appendAssemblyId>false</appendAssemblyId>
-									<finalName>mypeople.picture</finalName>
+									<finalName>mypeople.dataexporter</finalName>
 								</configuration>
 							</execution>
 						</executions>
