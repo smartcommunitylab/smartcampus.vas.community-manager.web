@@ -42,7 +42,7 @@ public class DataRetriever {
 
 	private static final String HOST = "sweb.smartcampuslab.it";
 	private static final int PORT = 8080;
-	private static final String DESTINATION = "/home/dev/mypeople-picture/test";
+	private static final String DESTINATION = "/home/dev/mypeople-picture";
 
 	private static final String DB_URL = "jdbc:mysql://localhost/acprovider";
 	private static final String DB_USER = "ac";
