@@ -220,16 +220,17 @@ public class FileManager {
 		return name.substring(name.lastIndexOf(".") + 1);
 	}
 
-	private File getProfilePicture(long userId)
+	private File getProfilePicture(long pictureId)
 			throws CommunityManagerException {
-		MinimalProfile profile = userManager.getUserById(userId);
+		MinimalProfile profile = userManager.getUserByPictureUrl(pictureId);
 		String msg = null;
 		if (profile == null) {
-			msg = "No profile for user " + userId;
+			msg = "No profile for pictureId " + pictureId;
 			logger.error(msg);
 			throw new CommunityManagerException(msg);
 		}
-		boolean pictureExist = StringUtils.hasText(profile.getPictureUrl());
+
+		boolean pictureExist = StringUtils.hasText(profile.getPicturePath());
 
 		File picture = null;
 		if (pictureExist) {
@@ -237,15 +238,14 @@ public class FileManager {
 			pictureExist = picture.exists();
 		}
 
-		// try to find userId.jpg, picture from sweb engine porting
+		// search in sweb porting [ userId.png ]
 		if (!pictureExist) {
-			picture = new File(pictureFolderPath + profile.getPictureUrl()
-					+ ".png");
+			picture = new File(pictureFolderPath + profile.getUserId() + ".png");
 			pictureExist = picture.exists();
 		}
 
 		if (!pictureExist) {
-			msg = "No profile picture for user " + userId;
+			msg = "No profile picture for user " + profile.getUserId();
 			logger.error(msg);
 			throw new CommunityManagerException(msg);
 

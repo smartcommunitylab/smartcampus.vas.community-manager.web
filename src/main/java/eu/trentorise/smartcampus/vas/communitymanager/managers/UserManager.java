@@ -205,6 +205,31 @@ public class UserManager {
 	}
 
 	/**
+	 * returns the MinimalProfile of a given pictureUrl
+	 * 
+	 * @param userId
+	 *            id of user
+	 * @return MinimalProfile of user or null if it doesn't exist
+	 * @throws CommunityManagerException
+	 */
+	public MinimalProfile getUserByPictureUrl(long picture)
+			throws CommunityManagerException {
+		Map<String, Object> filter = new HashMap<String, Object>();
+		filter.put("pictureUrl", String.valueOf(picture));
+		MinimalProfile profile = null;
+		try {
+			profile = ProfileConverter.toMinimalProfile(storage.searchObjects(
+					StoreProfile.class, filter).get(0));
+		} catch (IndexOutOfBoundsException e) {
+			return null;
+		} catch (Exception e) {
+			throw new CommunityManagerException();
+		}
+
+		return profile;
+	}
+
+	/**
 	 * returns the MinimalProfile of a user given its social id
 	 * 
 	 * @param socialId
